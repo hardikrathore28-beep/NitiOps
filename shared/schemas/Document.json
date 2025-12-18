@@ -1,0 +1,45 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/document",
+    "title": "Document",
+    "description": "A unit of unstructured data",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "title": {
+            "type": "string"
+        },
+        "content_type": {
+            "type": "string"
+        },
+        "storage_location": {
+            "type": "string",
+            "format": "uri"
+        },
+        "metadata": {
+            "type": "object"
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "owner_user_id": {
+            "type": "string",
+            "format": "uuid"
+        }
+    },
+    "required": [
+        "id",
+        "tenant_id",
+        "title",
+        "storage_location"
+    ],
+    "additionalProperties": false
+}

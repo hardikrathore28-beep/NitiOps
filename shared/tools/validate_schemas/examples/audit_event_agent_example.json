@@ -1,0 +1,14 @@
+{
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "tenant_id": "550e8400-e29b-41d4-a716-446655440002",
+    "event_type": "AGENT_INVOKE_START",
+    "agent_invocation_id": "550e8400-e29b-41d4-a716-446655440000",
+    "actor": {
+        "type": "system",
+        "id": "workflow-engine"
+    },
+    "payload": {
+        "reason": "Step 2 of research workflow"
+    },
+    "timestamp": "2023-10-27T10:00:00Z"
+}

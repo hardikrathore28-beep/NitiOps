@@ -1,0 +1,37 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/chunk",
+    "title": "Chunk",
+    "description": "A subdivision of a document for retrieval",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "document_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "content": {
+            "type": "string"
+        },
+        "embedding_ref": {
+            "type": "string",
+            "description": "Reference to vector storage ID"
+        },
+        "index": {
+            "type": "integer"
+        },
+        "token_count": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "document_id",
+        "content",
+        "index"
+    ],
+    "additionalProperties": false
+}

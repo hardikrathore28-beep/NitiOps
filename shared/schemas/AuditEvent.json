@@ -1,0 +1,107 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/audit_event",
+    "title": "AuditEvent",
+    "description": "Immutable record of system activity",
+    "type": "object",
+    "properties": {
+        "event_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "event_type": {
+            "type": "string"
+        },
+        "actor": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ]
+        },
+        "purpose": {
+            "type": "string"
+        },
+        "context": {
+            "type": "object"
+        },
+        "references": {
+            "type": "object",
+            "properties": {
+                "workflow_id": {
+                    "type": "string"
+                },
+                "agent_invocation_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "required": [
+        "tenant_id",
+        "event_type",
+        "actor",
+        "purpose"
+    ],
+    "additionalProperties": false,
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "event_type": {
+                        "pattern": "^AGENT_"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "references"
+                ],
+                "properties": {
+                    "references": {
+                        "required": [
+                            "agent_invocation_id"
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "event_type": {
+                        "pattern": "^WORKFLOW_"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "references"
+                ],
+                "properties": {
+                    "references": {
+                        "required": [
+                            "workflow_id"
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}

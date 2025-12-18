@@ -1,0 +1,118 @@
+services:
+  # PostageSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: nitiops-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nitiops-net
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: nitiops-keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nitiops-net
+
+  # Open Policy Agent (OPA)
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: nitiops-opa
+    command: run --server --addr :8181
+    ports:
+      - "8181:8181"
+    networks:
+      - nitiops-net
+
+  # Temporal
+  temporal:
+    image: temporalio/auto-setup:1.25.1
+    container_name: nitiops-temporal
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD}
+      - POSTGRES_SEEDS=postgres
+      - LOG_LEVEL=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "7233:7233"
+    networks:
+      - nitiops-net
+
+  temporal-ui:
+    image: temporalio/ui:2.26.0
+    container_name: nitiops-temporal-ui
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8081:8080"
+    depends_on:
+      - temporal
+    networks:
+      - nitiops-net
+
+  # Audit Service
+  audit-service:
+    build:
+      context: ../
+      dockerfile: services/audit-service/Dockerfile
+    container_name: nitiops-audit-service
+    environment:
+      - PORT=3001
+      - SERVICE_NAME=audit-service
+    depends_on:
+      - postgres
+    networks:
+      - nitiops-net
+
+  # Policy Service
+  policy-service:
+    build:
+      context: ../
+      dockerfile: services/policy-service/Dockerfile
+    container_name: nitiops-policy-service
+    environment:
+      - PORT=3002
+      - SERVICE_NAME=policy-service
+    depends_on:
+      - opa
+    networks:
+      - nitiops-net
+
+volumes:
+  postgres_data:
+
+
+networks:
+  nitiops-net:
+    driver: bridge

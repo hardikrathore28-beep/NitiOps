@@ -1,0 +1,56 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/workflow_run",
+    "title": "WorkflowRun",
+    "description": "Instance of a workflow execution",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "workflow_id": {
+            "type": "string"
+        },
+        "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "initiated_by_user_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "running",
+                "paused",
+                "completed",
+                "failed",
+                "cancelled"
+            ]
+        },
+        "steps": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updated_at": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "required": [
+        "id",
+        "workflow_id",
+        "tenant_id",
+        "status"
+    ],
+    "additionalProperties": false
+}

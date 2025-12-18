@@ -1,0 +1,6 @@
+packages:
+  - "apps/*"
+  - "services/*"
+  - "shared/*"
+  - "shared/sdk/*"
+  - "infra/*"

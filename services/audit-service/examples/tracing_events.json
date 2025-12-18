@@ -1,0 +1,58 @@
+[
+    {
+        "desc": "Valid Agent Invocation Start",
+        "event": {
+            "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+            "event_type": "AGENT_INVOKE_START",
+            "actor": {
+                "type": "system",
+                "id": "orchestrator"
+            },
+            "purpose": "Delegation to specialist",
+            "context": {
+                "task": "analyze_metrics"
+            },
+            "references": {
+                "agent_invocation_id": "123e4567-e89b-12d3-a456-426614174000",
+                "workflow_id": "987fcdeb-51a2-4a1e-8902-123456789abc"
+            },
+            "timestamp": "2025-12-17T12:00:00Z"
+        }
+    },
+    {
+        "desc": "Valid Workflow Step",
+        "event": {
+            "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+            "event_type": "WORKFLOW_STEP",
+            "actor": {
+                "type": "agent",
+                "id": "agent-007"
+            },
+            "purpose": "Step completion",
+            "context": {
+                "result": "success"
+            },
+            "references": {
+                "workflow_id": "987fcdeb-51a2-4a1e-8902-123456789abc"
+            },
+            "timestamp": "2025-12-17T12:05:00Z"
+        }
+    },
+    {
+        "desc": "Invalid Agent Event (Missing agent_invocation_id)",
+        "valid": false,
+        "event": {
+            "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+            "event_type": "AGENT_INVOKE_END",
+            "actor": {
+                "type": "system",
+                "id": "orchestrator"
+            },
+            "purpose": "invalid_test",
+            "references": {
+                "workflow_id": "987fcdeb-51a2-4a1e-8902-123456789abc"
+            },
+            "timestamp": "2025-12-17T12:10:00Z"
+        }
+    }
+]

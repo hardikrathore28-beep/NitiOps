@@ -1,0 +1,46 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/tool_invocation",
+    "title": "ToolInvocation",
+    "description": "Record of a specific tool execution",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "tool_id": {
+            "type": "string"
+        },
+        "invoked_by_agent_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "arguments": {
+            "type": "object"
+        },
+        "result": {
+            "type": "object",
+            "nullable": true
+        },
+        "error": {
+            "type": "string",
+            "nullable": true
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "duration_ms": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "id",
+        "tool_id",
+        "invoked_by_agent_id",
+        "arguments",
+        "timestamp"
+    ],
+    "additionalProperties": false
+}

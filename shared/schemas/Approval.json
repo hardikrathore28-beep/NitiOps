@@ -1,0 +1,61 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/approval",
+    "title": "Approval",
+    "description": "Human authorization gate",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "workflow_run_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "requested_by_agent_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "approver_role_id": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "timed_out"
+            ]
+        },
+        "context_data": {
+            "type": "object",
+            "description": "Data provided for decision making"
+        },
+        "decision_reason": {
+            "type": "string"
+        },
+        "decided_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "decided_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+        }
+    },
+    "required": [
+        "id",
+        "workflow_run_id",
+        "status",
+        "created_at"
+    ],
+    "additionalProperties": false
+}

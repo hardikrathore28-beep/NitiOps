@@ -1,0 +1,35 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/tenant",
+    "title": "Tenant",
+    "description": "A logical isolation unit for an organization or customer",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "name": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "active",
+                "suspended",
+                "archived"
+            ]
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "created_at",
+        "status"
+    ],
+    "additionalProperties": false
+}

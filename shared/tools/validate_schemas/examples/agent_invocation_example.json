@@ -1,0 +1,18 @@
+{
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "agent_id": "specialist-researcher-01",
+    "agent_type": "specialist",
+    "invoked_by": {
+        "type": "workflow",
+        "id": "workflow-run-123"
+    },
+    "input_refs": [
+        "doc-123",
+        "prompt-456"
+    ],
+    "output_refs": [],
+    "execution_mode": "sequential",
+    "iteration_index": null,
+    "status": "pending",
+    "started_at": "2023-10-27T10:00:00Z"
+}

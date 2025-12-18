@@ -1,0 +1,38 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/tool",
+    "title": "Tool",
+    "description": "Definition of an executable capability",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "parameters_schema": {
+            "type": "object",
+            "description": "JSON Schema for the tool parameters"
+        },
+        "is_read_only": {
+            "type": "boolean",
+            "default": false
+        },
+        "required_permissions": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "parameters_schema"
+    ],
+    "additionalProperties": false
+}

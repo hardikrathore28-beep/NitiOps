@@ -1,0 +1,97 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://nitiops.com/schemas/agent_invocation",
+    "title": "AgentInvocation",
+    "description": " governance record of an agent execution",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "agent_id": {
+            "type": "string"
+        },
+        "agent_type": {
+            "type": "string",
+            "enum": [
+                "orchestrator",
+                "specialist"
+            ]
+        },
+        "invoked_by": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "workflow",
+                        "tool"
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ]
+        },
+        "input_refs": {
+            "type": "array",
+            "description": "IDs only, no raw sensitive data",
+            "items": {
+                "type": "string"
+            }
+        },
+        "output_refs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "execution_mode": {
+            "type": "string",
+            "enum": [
+                "sequential",
+                "parallel",
+                "loop"
+            ]
+        },
+        "iteration_index": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "running",
+                "completed",
+                "failed"
+            ]
+        },
+        "started_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "completed_at": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    },
+    "required": [
+        "id",
+        "agent_id",
+        "agent_type",
+        "invoked_by",
+        "execution_mode",
+        "status"
+    ],
+    "additionalProperties": false
+}
