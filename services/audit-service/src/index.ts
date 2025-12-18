@@ -31,8 +31,14 @@ try {
     const schema = JSON.parse(schemaContent);
     validate = ajv.compile(schema);
     logger.info('AuditEvent schema loaded successfully.');
-} catch (err) {
-    logger.error('Failed to load or compile AuditEvent schema', { error: err });
+} catch (err: any) {
+    logger.error('Failed to load or compile AuditEvent schema', {
+        path: schemaPath,
+        dirname: __dirname,
+        message: err.message,
+        stack: err.stack,
+        errors: err.errors // Ajv errors often attached here
+    });
     process.exit(1);
 }
 
@@ -56,7 +62,7 @@ app.post('/audit/events', async (req: Request, res: Response) => {
     try {
         const query = `
             INSERT INTO audit_events (
-                tenant_id, event_type, actor, purpose, context, references, timestamp
+                tenant_id, event_type, actor, purpose, context, "references", timestamp
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, COALESCE($7, NOW())
             ) RETURNING event_id, payload_hash, hash_prev, hash_this;

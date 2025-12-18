@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Copy shared sdk
 COPY shared/sdk/service-template /app/shared/sdk/service-template
+COPY shared/schemas /app/shared/schemas
 
 # Copy service
 COPY services/audit-service /app/services/audit-service

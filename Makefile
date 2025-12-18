@@ -15,3 +15,8 @@ health:
 	@docker-compose -f infra/docker-compose.yml exec -T audit-service wget -qO- http://localhost:3001/health || echo "Failed"
 	@echo "\nPolicy Service:"
 	@docker-compose -f infra/docker-compose.yml exec -T policy-service wget -qO- http://localhost:3002/health || echo "Failed"
+
+policy-test:
+	@echo "Running Policy Tests..."
+	@docker run --rm -v $(PWD)/policy:/policy openpolicyagent/opa:latest test /policy/bundles /policy/tests -v
+

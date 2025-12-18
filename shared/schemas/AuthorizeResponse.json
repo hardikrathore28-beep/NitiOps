@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AuthorizeResponse",
+    "type": "object",
+    "required": [
+        "allow",
+        "decision_id",
+        "reasons",
+        "policy_version"
+    ],
+    "properties": {
+        "allow": {
+            "type": "boolean"
+        },
+        "decision_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "reasons": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "obligations": {
+            "type": "object",
+            "properties": {
+                "redactions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "approval_required": {
+                    "type": "boolean"
+                },
+                "max_rows": {
+                    "type": "integer"
+                },
+                "field_mask": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "policy_version": {
+            "type": "string"
+        }
+    }
+}

@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+export * from './authMiddleware';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as winston from 'winston';

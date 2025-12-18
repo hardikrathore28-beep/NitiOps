@@ -1,48 +1,57 @@
-# NitiOps Service Template
+# Service Template SDK
 
-The standardized base for all microservices in the NitiOps platform.
+Standardized Express service template for NitiOps microservices.
+Provides logging, auditing, and authorization middleware out of the box.
 
-## Features
+## Installation
+```bash
+npm install @nitiops/service-template
+```
 
-- **Express.js** scaffolding with CORS and body parsing.
-- **Winston** JSON logging.
-- **Automatic Audit Integration**.
+## Usage
 
-## Audit Behavior
-
-All services created with `createService()` automatically participate in the platform's audit ledger.
-
-### Automatic Events
-The middleware automatically emits the following events to the `audit-service`:
-
-1.  **`REQUEST_RECEIVED`**: Emitted immediately upon request entry.
-    *   **Blocking**: If this emission fails (e.g., audit service down), the request is **rejected** with `503 Service Unavailable`. This enforces the "Audit mandatory" policy.
-2.  **`REQUEST_COMPLETED`** / **`REQUEST_FAILED`**: Emitted when the response finishes (logic based on status code).
-    *   Best-effort: Failure to emit specific completion log does not rollback the action (as it's already done), but is logged as an error.
-
-### Context Propagation
-The middleware expects and propagates the following headers into the audit log:
-
-- `x-trace-id`
-- `x-tenant-id`
-- `x-actor-id`
-- `x-workflow-id`
-- `x-agent-invocation-id`
-
-### Configuration
-
-- **`AUDIT_SERVICE_URL`**: URL of the audit service (default: `http://audit-service:3001/audit/events`).
-- **`SERVICE_NAME`**: Functioning as the "service" meta field in logs.
-
-### Usage
-
+### Basic Service
 ```typescript
-import { createService, startService } from '@nitiops/service-template';
+import { createService, startService, logger } from '@nitiops/service-template';
 
 const app = createService('my-service');
-// Define routes...
+const PORT = 3000;
+
+app.get('/', (req, res) => {
+    logger.info('Handling request');
+    res.send('Hello World');
+});
+
+startService(app, PORT);
+```
+
+### Authorization (ABAC)
+
+Use `createAuthorizationMiddleware` to enforce policies on routes.
+
+```typescript
+import { createService, startService, createAuthorizationMiddleware } from '@nitiops/service-template';
+
+const app = createService('document-service');
+
+// Define Route Mapping
+const documentReadAuth = createAuthorizationMiddleware((req) => ({
+    action: 'document.read',
+    resource: { type: 'document', id: req.params.id },
+    purpose: 'user_request'
+}));
+
+// Apply to Route
+app.get('/documents/:id', documentReadAuth, (req, res) => {
+    // If we are here, policy allowed it.
+    // Access context via req.obligations if needed.
+    res.json({ id: req.params.id, content: "Secret stuff" });
+});
+
 startService(app, 3000);
 ```
 
-### Self-Auditing
-If `SERVICE_NAME` is set to `audit-service`, the automatic HTTP hooks are disabled to prevent infinite recursion. The audit service handles its own persistence directly.
+### Environment Variables
+- `SERVICE_NAME`: Name of the service (for logging)
+- `AUDIT_SERVICE_URL`: URL of the audit service (default: http://audit-service:3001)
+- `POLICY_SERVICE_URL`: URL of the policy service (default: http://policy-service:3002)
