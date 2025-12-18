@@ -1,0 +1,56 @@
+{
+    "realm": "platform",
+    "enabled": true,
+    "roles": {
+        "realm": [
+            {
+                "name": "platform_admin",
+                "description": "Administrator for the NitiOps Platform"
+            }
+        ]
+    },
+    "clients": [
+        {
+            "clientId": "platform-services",
+            "enabled": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "platform-services-secret",
+            "serviceAccountsEnabled": true,
+            "standardFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "publicClient": false,
+            "protocol": "openid-connect",
+            "protocolMappers": [
+                {
+                    "name": "Platform Admin Role Mapper",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-realm-role-mapper",
+                    "config": {
+                        "claim.name": "realm_access.roles",
+                        "jsonType.label": "String",
+                        "multivalued": "true"
+                    }
+                }
+            ]
+        }
+    ],
+    "users": [
+        {
+            "username": "admin",
+            "enabled": true,
+            "email": "admin@nitiops.com",
+            "firstName": "Platform",
+            "lastName": "Admin",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "admin",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "platform_admin"
+            ]
+        }
+    ]
+}

@@ -55,3 +55,34 @@ startService(app, 3000);
 - `SERVICE_NAME`: Name of the service (for logging)
 - `AUDIT_SERVICE_URL`: URL of the audit service (default: http://audit-service:3001)
 - `POLICY_SERVICE_URL`: URL of the policy service (default: http://policy-service:3002)
+
+## Authentication Middleware
+
+The `createAuthorizationMiddleware` handles multi-tenant authentication and authorization:
+
+1.  **Identity Extraction (JWT)**:
+    *   Extracts the Bearer token.
+    *   **Trust No Header**: Decodes the token (unverified) to inspect the `iss` (issuer).
+    *   **Issuer Validation**: Ensures `iss` matches the pattern `.../realms/tenant-<slug>` or `.../realms/platform`.
+    *   **JWKS Fetch**: Dynamically fetches public keys from `<iss>/protocol/openid-connect/certs`.
+        *   **Caching**: Caches JWKS clients per issuer (Global map) to minimize requests.
+    *   **Verification**: Validates signature (RS256), expiration, and exact issuer match.
+    *   **Actor Mapping**:
+        *   `sub` -> `actor_id`
+        *   `realm_access.roles` -> `roles`
+        *   Derives `tenant_id` from the issuer URL.
+
+2.  **Authorization (Policy Service)**:
+    *   Constructs a standard XACML-style authorization request.
+    *   Calls `http://policy-service:3002/authorize`.
+
+### Usage
+
+```typescript
+import { createAuthorizationMiddleware } from '@nitiops/service-template';
+
+app.use(createAuthorizationMiddleware(req => ({
+    action: 'resource.read',
+    resource: { type: 'document', id: req.params.id }
+})));
+```

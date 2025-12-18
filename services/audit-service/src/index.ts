@@ -23,24 +23,52 @@ const pool = new Pool({
 const ajv = new Ajv({ strict: false }); // strict: false to allow schema with unknown keywords if any
 addFormats(ajv);
 
-const schemaPath = path.resolve(__dirname, '../../../shared/schemas/AuditEvent.json');
-let validate: any;
+// --- Database Migration Helper ---
+let validate: any; // Define usage globally for endpoint
 
-try {
-    const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
-    const schema = JSON.parse(schemaContent);
-    validate = ajv.compile(schema);
-    logger.info('AuditEvent schema loaded successfully.');
-} catch (err: any) {
-    logger.error('Failed to load or compile AuditEvent schema', {
-        path: schemaPath,
-        dirname: __dirname,
-        message: err.message,
-        stack: err.stack,
-        errors: err.errors // Ajv errors often attached here
-    });
-    process.exit(1);
-}
+const initDB = async () => {
+    try {
+        // Read migration files
+        const migrationDir = path.resolve(__dirname, '../migrations');
+        if (fs.existsSync(migrationDir)) {
+            const files = fs.readdirSync(migrationDir).sort(); // 001, 002...
+            for (const file of files) {
+                if (file.endsWith('.sql')) {
+                    logger.info(`Running migration: ${file}`);
+                    const sql = fs.readFileSync(path.join(migrationDir, file), 'utf-8');
+                    await pool.query(sql);
+                }
+            }
+            logger.info('Database migrations completed successfully.');
+        } else {
+            logger.warn('No migrations directory found.');
+        }
+    } catch (err: any) {
+        logger.error('Database migration failed', { error: err.message });
+        process.exit(1);
+    }
+};
+
+// Initialize DB
+initDB().then(() => {
+    // AuditEvent schema validation load
+    const schemaPath = path.resolve(__dirname, '../../../shared/schemas/AuditEvent.json');
+    try {
+        const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
+        const schema = JSON.parse(schemaContent);
+        validate = ajv.compile(schema);
+        logger.info('AuditEvent schema loaded successfully.');
+    } catch (err: any) {
+        logger.error('Failed to load or compile AuditEvent schema', {
+            path: schemaPath,
+            dirname: __dirname,
+            message: err.message,
+            stack: err.stack,
+            errors: err.errors // Ajv errors often attached here
+        });
+        process.exit(1);
+    }
+});
 
 // --- Endpoints ---
 

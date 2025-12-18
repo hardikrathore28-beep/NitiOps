@@ -20,3 +20,7 @@ policy-test:
 	@echo "Running Policy Tests..."
 	@docker run --rm -v $(PWD)/policy:/policy openpolicyagent/opa:latest test /policy/bundles /policy/tests -v
 
+
+seed-demo:
+	@echo "Seeding Demo Tenant..."
+	@cd infra/keycloak && npx ts-node seed_demo_tenant.ts

@@ -23,7 +23,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.0
     container_name: nitiops-keycloak
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
@@ -31,6 +31,8 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ./keycloak/platform-realm-import.json:/opt/keycloak/data/import/platform-realm-import.json
     ports:
       - "8080:8080"
     depends_on:
@@ -101,6 +103,29 @@ services:
       - "3001:3001"
     depends_on:
       - postgres
+    networks:
+      - nitiops-net
+
+  # Tenant Service
+  tenant-service:
+    build:
+      context: ../
+      dockerfile: services/tenant-service/Dockerfile
+    container_name: nitiops-tenant-service
+    environment:
+      - PORT=3003
+      - SERVICE_NAME=tenant-service
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_CLIENT_SECRET=platform-services-secret
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - keycloak
     networks:
       - nitiops-net
 

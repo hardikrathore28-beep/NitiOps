@@ -11,7 +11,7 @@ COPY services/audit-service /app/services/audit-service
 
 # Install dependencies and build shared
 WORKDIR /app/shared/sdk/service-template
-RUN npm install && npm run build
+RUN rm -f package-lock.json && npm install && npm run build
 
 # Install dependencies and build service
 WORKDIR /app/services/audit-service

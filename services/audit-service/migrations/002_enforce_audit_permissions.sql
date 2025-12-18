@@ -40,14 +40,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_block_audit_update ON audit_events;
 CREATE TRIGGER trigger_block_audit_update
 BEFORE UPDATE ON audit_events
 FOR EACH ROW EXECUTE FUNCTION prevent_audit_mutation();
 
+DROP TRIGGER IF EXISTS trigger_block_audit_delete ON audit_events;
 CREATE TRIGGER trigger_block_audit_delete
 BEFORE DELETE ON audit_events
 FOR EACH ROW EXECUTE FUNCTION prevent_audit_mutation();
 
+DROP TRIGGER IF EXISTS trigger_block_audit_truncate ON audit_events;
 CREATE TRIGGER trigger_block_audit_truncate
 BEFORE TRUNCATE ON audit_events
 EXECUTE FUNCTION prevent_audit_mutation();

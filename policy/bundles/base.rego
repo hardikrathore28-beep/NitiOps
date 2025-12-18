@@ -7,6 +7,11 @@ package main
 # Default deny
 default allow = false
 
+# Allow verification endpoint
+allow if {
+    input.action == "auth.inspect"
+}
+
 # Unify allow decisions from sub-policies
 allow if {
     data.policies.api.allow
@@ -26,6 +31,10 @@ allow if {
 
 allow if {
     data.policies.workflow.allow
+}
+
+allow if {
+    data.policies.tenant.allow
 }
 
 # ------------------------------------------------------------------------------
