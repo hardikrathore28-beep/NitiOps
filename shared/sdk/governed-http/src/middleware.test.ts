@@ -174,4 +174,86 @@ describe('governedRoute Middleware', () => {
         expect(status).toHaveBeenCalledWith(503);
         expect(json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Policy Service Unavailable (Fail Closed)' }));
     });
+
+    it('should fail closed (503) if Audit Service is down for privileged route', async () => {
+        mockAuthSuccess();
+        // @ts-ignore
+        req.headers['x-purpose'] = 'testing';
+        // Audit fails immediately
+        (AuditClient.emit as jest.Mock).mockRejectedValue(new Error('Audit Down'));
+
+        const handler = governedRoute({
+            action: 'test.action',
+            resourceResolver: () => ({ type: 'test', id: '1' }),
+            privileged: true
+        }, jest.fn());
+
+        await handler(req as Request, res as Response, next);
+
+        expect(status).toHaveBeenCalledWith(503);
+        expect(json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Audit Service Unavailable (Fail Closed)' }));
+    });
+
+    it('should degrade (continue) if Audit Service is down for non-privileged route', async () => {
+        mockAuthSuccess();
+        // @ts-ignore
+        req.headers['x-purpose'] = 'testing';
+        (AuditClient.emit as jest.Mock).mockRejectedValue(new Error('Audit Down'));
+        (PolicyClient.authorize as jest.Mock).mockResolvedValue({ allow: true, decision_id: 'ok' });
+
+        const actualHandler = jest.fn().mockImplementation((req, res) => {
+            res.status(200).json({ success: true });
+        });
+        const handler = governedRoute({
+            action: 'test.action',
+            resourceResolver: () => ({ type: 'test', id: '1' }),
+            privileged: false // Explicitly non-privileged
+        }, actualHandler);
+
+        await handler(req as Request, res as Response, next);
+
+        expect(status).not.toHaveBeenCalledWith(503);
+        expect(actualHandler).toHaveBeenCalled();
+    });
+
+    it('should default to Deny (403) if Policy Service is down for non-privileged route', async () => {
+        mockAuthSuccess();
+        // @ts-ignore
+        req.headers['x-purpose'] = 'testing';
+        (PolicyClient.authorize as jest.Mock).mockRejectedValue(new Error('Policy Down'));
+
+        const handler = governedRoute({
+            action: 'test.action',
+            resourceResolver: () => ({ type: 'test', id: '1' }),
+            privileged: false
+        }, jest.fn());
+
+        await handler(req as Request, res as Response, next);
+
+        expect(status).toHaveBeenCalledWith(403);
+        expect(json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Forbidden' }));
+    });
+
+    it('should Allow if policyFailOpen=true and Policy Service is down for non-privileged route', async () => {
+        mockAuthSuccess();
+        // @ts-ignore
+        req.headers['x-purpose'] = 'testing';
+        (PolicyClient.authorize as jest.Mock).mockRejectedValue(new Error('Policy Down'));
+
+        const actualHandler = jest.fn().mockImplementation((req, res) => {
+            res.status(200).json({ success: true });
+        });
+        const handler = governedRoute({
+            action: 'test.action',
+            resourceResolver: () => ({ type: 'test', id: '1' }),
+            privileged: false,
+            policyFailOpen: true
+        }, actualHandler);
+
+        await handler(req as Request, res as Response, next);
+
+        expect(status).not.toHaveBeenCalledWith(403);
+        expect(status).not.toHaveBeenCalledWith(503);
+        expect(actualHandler).toHaveBeenCalled();
+    });
 });

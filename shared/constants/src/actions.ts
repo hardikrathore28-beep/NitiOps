@@ -23,3 +23,11 @@ export const ACTIONS = {
     TENANT_CREATE: 'tenant.create' as ActionType,
     USER_CREATE: 'user.create' as ActionType
 } as const;
+
+/**
+ * Helper to ensure strict typing when defining routes.
+ * Usage: actionFrom(ACTIONS.TENANT_CREATE)
+ */
+export const actionFrom = (action: ActionType): ActionType => {
+    return action;
+};

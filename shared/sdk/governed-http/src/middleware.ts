@@ -202,8 +202,21 @@ export const governedRoute = (config: RouteConfig, handler: (req: Request, res: 
                 }).catch(() => { });
                 return res.status(503).json({ error: 'Policy Service Unavailable (Fail Closed)' });
             }
-            // Fallback Deny
-            decision = { allow: false, decision_id: 'fail-open-prevented', reasons: ['Policy Service Unavailable'] };
+
+            // Non-privileged: fallback logic
+            if (config.policyFailOpen === true) {
+                // Fail Open
+                console.warn('Policy Service Unavailable: Improving Availability (Fail Open)');
+                decision = {
+                    allow: true,
+                    decision_id: 'fail-open-permitted',
+                    reasons: ['Policy Service Unavailable (Fail Open Configured)'],
+                    obligations: {}
+                };
+            } else {
+                // Default: Fallback Deny
+                decision = { allow: false, decision_id: 'fail-open-prevented', reasons: ['Policy Service Unavailable'] };
+            }
         }
 
         // STEP 5: Audit AUTHZ_DECISION

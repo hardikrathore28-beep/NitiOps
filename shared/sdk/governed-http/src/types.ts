@@ -54,4 +54,5 @@ export interface RouteConfig {
     privileged?: boolean; // If true, fail closed
     purposeRequired?: boolean; // Default true
     redactRequestBody?: boolean; // Default true for privileged
+    policyFailOpen?: boolean; // Default false (Deny). If true, allow when policy unavailable (only if !privileged).
 }

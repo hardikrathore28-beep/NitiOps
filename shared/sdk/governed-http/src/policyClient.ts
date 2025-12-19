@@ -18,7 +18,11 @@ export class PolicyClient {
                 throw new Error(`Policy Service error: ${response.statusText}`);
             }
 
-            return await response.json() as Decision;
+            const result = await response.json() as any;
+            if (typeof result.allow !== 'boolean') {
+                throw new Error('Invalid Policy Response: missing allow boolean');
+            }
+            return result as Decision;
         } catch (error: any) {
             // Throwing so the caller (middleware) can handle "fail-closed" logic
             throw new Error(`Policy Service Unreachable: ${error.message}`);
