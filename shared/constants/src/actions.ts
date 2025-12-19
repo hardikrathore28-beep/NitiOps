@@ -9,7 +9,9 @@ export type ActionType =
     | 'tool.invoke'
     | 'workflow.start'
     | 'approval.request'
-    | 'approval.decide';
+    | 'approval.decide'
+    | 'tenant.create'
+    | 'user.create';
 
 export const ACTIONS = {
     RAG_SEARCH: 'rag.search' as ActionType,
@@ -17,5 +19,7 @@ export const ACTIONS = {
     TOOL_INVOKE: 'tool.invoke' as ActionType,
     WORKFLOW_START: 'workflow.start' as ActionType,
     APPROVAL_REQUEST: 'approval.request' as ActionType,
-    APPROVAL_DECIDE: 'approval.decide' as ActionType
+    APPROVAL_DECIDE: 'approval.decide' as ActionType,
+    TENANT_CREATE: 'tenant.create' as ActionType,
+    USER_CREATE: 'user.create' as ActionType
 } as const;

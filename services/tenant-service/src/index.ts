@@ -12,89 +12,54 @@ initKeycloak();
 
 const PLATFORM_TENANT_ID = '00000000-0000-0000-0000-000000000000';
 
-app.post('/tenants', async (req: Request, res: Response) => {
-    const { slug, displayName, description } = req.body;
+import { governedRoute, ACTIONS, Resource } from '@nitiops/governed-http';
 
-    // 0. Input Validation
+app.post('/tenants', governedRoute({
+    action: ACTIONS.TENANT_CREATE,
+    resourceResolver: (req) => ({
+        type: 'tenant',
+        id: req.body.slug || 'unknown',
+        labels: { operation: 'create' },
+        owner_department_id: 'platform'
+    }),
+    privileged: true, // Fail closed
+    purposeRequired: true
+}, async (req: Request, res: Response) => {
+    const { slug, displayName } = req.body;
+
+    // 0. Input Validation (Still needed here, or can be done in resolver/middleware?)
+    // Basic validation is fine here.
     if (!slug || !/^[a-z0-9]+$/.test(slug)) {
         return res.status(400).json({ error: 'Invalid slug. Must be lowercase alphanumeric.' });
     }
 
-    try {
-        // 1. Audit: REQUEST (Handled by middleware implicitly, but we explicit logs)
-        logger.info(`Provisioning tenant: ${slug}`);
+    // 1. Logic (Auth/Audit/Policy handled by middleware)
+    // Access context if needed: (req as any).actor, (req as any).obligations
 
-        // 2. AuthZ Check
-        const authHeader = req.headers.authorization;
-        const actorToken = authHeader ? authHeader.split(' ')[1] : null;
-        // In real world, we'd extract actor from token.
-        // For now, construct a request payload.
-        const policyResponse = await fetch('http://policy-service:3002/authorize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tenant_id: 'platform', // Creating a tenant is a platform-level action
-                actor: {
-                    actor_id: 'admin', // Should be dynamic from valid token
-                    actor_type: 'user',
-                    roles: ['platform_admin'], // Should be dynamic
-                    department_id: 'platform'
-                },
-                action: 'tenant.create',
-                resource: {
-                    type: 'tenant',
-                    id: slug,
-                    owner_department_id: 'platform'
-                },
-                purpose: 'Provision new tenant via API',
-                context: {
-                    time: new Date().toISOString()
-                }
-            })
-        });
+    // 2. Keycloak Provisioning
+    const kcResult = await createTenantRealm(slug, displayName);
 
-        const decision = await policyResponse.json();
+    // 3. DB Persistence
+    const result = await db.query(
+        `INSERT INTO tenants (realm_name, slug, issuer_url, display_name) VALUES ($1, $2, $3, $4) RETURNING *`,
+        [kcResult.realmName, slug, kcResult.issuerUrl, displayName]
+    );
+    const newTenant = result.rows[0];
 
-        // Audit: AUTHZ_DECISION
-        await audit({
-            tenant_id: PLATFORM_TENANT_ID,
-            event_type: 'AUTHZ_DECISION',
-            actor: { type: 'user', id: 'admin' },
-            purpose: 'Authorization check for tenant.create',
-            context: { decision, slug },
-            timestamp: new Date().toISOString()
-        });
+    // Audit Success is automatic (REQUEST_COMPLETED)
+    // But we might want to emit a specific BUSINESS event like TENANT_CREATED?
+    // The middleware audits "REQUEST_COMPLETED". 
+    // If we want "TENANT_CREATED", we can use AuditClient manually OR rely on the generic logs.
+    // The prompt says "Audit: TENANT_CREATED" was in the manual version. 
+    // Governed SDK middleware emits generic request events. 
+    // We can import AuditClient and emit custom events too.
+    const { audit } = require('@nitiops/service-template'); // Or use SDK's client
+    // Let's use the one from service-template for backward comp or the new one.
+    // Actually, let's stick to the prompt's new pattern where middleware covers "audit coverage".
+    // If specific business events are needed, we can log them.
 
-        if (!decision.allow) {
-            return res.status(403).json({ error: 'Forbidden', details: decision.reasons });
-        }
-
-        // 3. Keycloak Provisioning
-        const kcResult = await createTenantRealm(slug, displayName);
-
-        // 4. DB Persistence
-        const result = await db.query(
-            `INSERT INTO tenants (realm_name, slug, issuer_url, display_name) VALUES ($1, $2, $3, $4) RETURNING *`,
-            [kcResult.realmName, slug, kcResult.issuerUrl, displayName]
-        );
-        const newTenant = result.rows[0];
-
-        // 5. Audit: TENANT_CREATED
-        await audit({
-            tenant_id: PLATFORM_TENANT_ID, // Use platform UUID for audit
-            event_type: 'TENANT_CREATED',
-            actor: { type: 'unknown', id: 'unknown' }, // Should come from middleware
-            purpose: 'Provision new tenant',
-            context: { slug, realm: kcResult.realmName, new_tenant_id: newTenant.id },
-            timestamp: new Date().toISOString()
-        });
-
-        res.status(201).json(newTenant);
-    } catch (error: any) {
-        logger.error('Failed to provision tenant', { error: error.message, stack: error.stack });
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
-});
+    res.status(201).json(newTenant);
+}));
 
 app.post('/tenants/:tenantId/users', async (req: Request, res: Response) => {
     const { tenantId } = req.params;

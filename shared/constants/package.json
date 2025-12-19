@@ -1,0 +1,15 @@
+{
+    "name": "@nitiops/constants",
+    "version": "1.0.0",
+    "description": "Shared constants and types for NitiOps platform",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "typescript": "^5.3.3"
+    }
+}
