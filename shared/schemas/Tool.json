@@ -5,7 +5,11 @@
     "description": "Definition of an executable capability",
     "type": "object",
     "properties": {
-        "id": {
+        "tool_id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "tenant_id": {
             "type": "string"
         },
         "name": {
@@ -14,25 +18,97 @@
         "description": {
             "type": "string"
         },
-        "parameters_schema": {
+        "adapter_type": {
+            "type": "string",
+            "enum": [
+                "rest",
+                "soap",
+                "custom"
+            ]
+        },
+        "input_schema": {
             "type": "object",
-            "description": "JSON Schema for the tool parameters"
+            "description": "JSON Schema for the tool inputs"
         },
-        "is_read_only": {
-            "type": "boolean",
-            "default": false
+        "output_schema": {
+            "type": "object",
+            "description": "JSON Schema for the tool outputs"
         },
-        "required_permissions": {
+        "sensitivity": {
+            "type": "string",
+            "enum": [
+                "low",
+                "medium",
+                "high"
+            ]
+        },
+        "allowed_purposes": {
             "type": "array",
             "items": {
                 "type": "string"
             }
+        },
+        "labels": {
+            "type": "object",
+            "properties": {
+                "system": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "department_id": {
+                    "type": "string"
+                },
+                "jurisdiction": {
+                    "type": "string"
+                }
+            }
+        },
+        "config": {
+            "type": "object",
+            "properties": {
+                "base_url": {
+                    "type": "string"
+                },
+                "auth_type": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "object"
+                },
+                "soap_wsdl_url": {
+                    "type": "string"
+                },
+                "operation": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "base_url",
+                "auth_type"
+            ]
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updated_at": {
+            "type": "string",
+            "format": "date-time"
         }
     },
     "required": [
-        "id",
+        "tool_id",
+        "tenant_id",
         "name",
-        "parameters_schema"
+        "adapter_type",
+        "input_schema",
+        "output_schema",
+        "sensitivity",
+        "allowed_purposes",
+        "created_at",
+        "updated_at"
     ],
     "additionalProperties": false
 }

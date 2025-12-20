@@ -16,6 +16,9 @@ export const createDb = (connectionString: string) => {
     return drizzle(pool, { schema });
 };
 
+// Singleton db instance for shared use
+export const db = createDb(process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/nitiops');
+
 // Also export schema for use
 export {
     tenants,
@@ -26,6 +29,8 @@ export {
     ingestionJobs,
     ingestionSources,
     chunks,
-    embeddings
+    embeddings,
+    tools,
+    toolInvocations
 } from './schema';
 export { eq, and, or, desc, asc, sql, gte, lte } from 'drizzle-orm';

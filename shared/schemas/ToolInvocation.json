@@ -5,42 +5,76 @@
     "description": "Record of a specific tool execution",
     "type": "object",
     "properties": {
-        "id": {
+        "invocation_id": {
             "type": "string",
             "format": "uuid"
         },
         "tool_id": {
-            "type": "string"
-        },
-        "invoked_by_agent_id": {
             "type": "string",
             "format": "uuid"
         },
-        "arguments": {
-            "type": "object"
+        "tenant_id": {
+            "type": "string"
         },
-        "result": {
+        "actor": {
             "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "purpose": {
+            "type": "string"
+        },
+        "input": {
+            "type": "object",
+            "description": "JSON input for the tool execution, may be redacted"
+        },
+        "output": {
+            "type": "object",
+            "description": "JSON output from the tool execution, may be redacted",
             "nullable": true
         },
-        "error": {
+        "status": {
             "type": "string",
-            "nullable": true
+            "enum": [
+                "started",
+                "success",
+                "failed",
+                "denied"
+            ]
         },
-        "timestamp": {
+        "started_at": {
             "type": "string",
             "format": "date-time"
         },
-        "duration_ms": {
-            "type": "integer"
+        "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+        },
+        "error_code": {
+            "type": "string",
+            "nullable": true
+        },
+        "error_message": {
+            "type": "string",
+            "nullable": true
         }
     },
     "required": [
-        "id",
+        "invocation_id",
         "tool_id",
-        "invoked_by_agent_id",
-        "arguments",
-        "timestamp"
+        "tenant_id",
+        "actor",
+        "purpose",
+        "input",
+        "status",
+        "started_at"
     ],
     "additionalProperties": false
 }

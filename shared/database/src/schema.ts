@@ -142,3 +142,47 @@ export const embeddings = pgTable('embeddings', {
     model_name: varchar('model_name', { length: 100 }).notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
+
+// MCP: Tools
+export const tools = pgTable('tools', {
+    tool_id: uuid('tool_id').defaultRandom().primaryKey(),
+    tenant_id: text('tenant_id').notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    adapter_type: varchar('adapter_type', { length: 50 }).notNull(), // rest, soap, custom
+    sensitivity: varchar('sensitivity', { length: 50 }).notNull(), // low, medium, high
+    allowed_purposes: jsonb('allowed_purposes').notNull(), // array of strings
+    labels: jsonb('labels').notNull(), // { system, domain, department_id, jurisdiction }
+    input_schema: jsonb('input_schema').notNull(),
+    output_schema: jsonb('output_schema').notNull(),
+    config: jsonb('config').notNull(), // baseUrl, headers (no secrets)
+    enabled: boolean('enabled').default(true).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+    return {
+        tenantToolIdx: sql`index "tools_tenant_tool_idx" on ${table} ("tenant_id", "tool_id")`,
+        tenantNameIdx: sql`index "tools_tenant_name_idx" on ${table} ("tenant_id", "name")`,
+    };
+});
+
+// MCP: Tool Invocations
+export const toolInvocations = pgTable('tool_invocations', {
+    invocation_id: uuid('invocation_id').defaultRandom().primaryKey(),
+    tool_id: uuid('tool_id').notNull().references(() => tools.tool_id, { onDelete: 'cascade' }),
+    tenant_id: text('tenant_id').notNull(),
+    actor: jsonb('actor').notNull(), // { user_id, role }
+    purpose: text('purpose').notNull(),
+    input: jsonb('input').notNull(), // redacted if sensitive
+    output: jsonb('output'), // redacted if sensitive
+    status: varchar('status', { length: 50 }).notNull(), // started, success, failed, denied
+    started_at: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+    completed_at: timestamp('completed_at', { withTimezone: true }),
+    error_code: text('error_code'),
+    error_message: text('error_message'),
+}, (table) => {
+    return {
+        tenantStatusIdx: sql`index "tool_invocations_tenant_status_idx" on ${table} ("tenant_id", "status")`,
+        toolIdIdx: sql`index "tool_invocations_tool_id_idx" on ${table} ("tool_id")`,
+    };
+});
