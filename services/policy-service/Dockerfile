@@ -1,21 +1,21 @@
 FROM node:22-alpine
-
 WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy shared sdk
-COPY shared/sdk/service-template /app/shared/sdk/service-template
-COPY shared/schemas /app/shared/schemas
+# Copy root workspace config
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
-# Copy service
-COPY services/policy-service /app/services/policy-service
+# Copy shared packages
+COPY shared ./shared
 
-# Install dependencies and build shared
-WORKDIR /app/shared/sdk/service-template
-RUN rm -f package-lock.json && npm install && npm run build
+# Copy service code
+COPY services/policy-service ./services/policy-service
 
-# Install dependencies and build service
+# Install dependencies (filtered)
+RUN pnpm install --frozen-lockfile --filter policy-service...
+
+# Build service
+RUN pnpm run build --filter policy-service
+
 WORKDIR /app/services/policy-service
-RUN npm install
-RUN npm run build
-
 CMD ["node", "dist/index.js"]

@@ -37,6 +37,48 @@ allow if {
     data.policies.tenant.allow
 }
 
+# Allow Infrastructure Initialization (Seeding)
+allow if {
+    input.purpose == "Infrastructure Initialization"
+}
+
+# Allow User Onboarding (Seeding)
+allow if {
+    input.purpose == "User Onboarding"
+}
+
+# Allow Verification
+allow if {
+    input.purpose == "Testing Upload"
+}
+allow if {
+    input.purpose == "Testing Process"
+}
+allow if {
+    input.purpose == "Testing Transcribe"
+}
+allow if {
+    input.purpose == "Testing REST"
+}
+allow if {
+    input.purpose == "Testing SOAP"
+}
+allow if {
+    input.purpose == "verification" # for whoami check
+}
+
+allow if {
+    input.action == "ingestion.configure"
+}
+
+allow if {
+    input.action == "ingestion.list_sources"
+}
+
+allow if {
+    input.action == "ingestion.sync_source"
+}
+
 # ------------------------------------------------------------------------------
 # Response Definitions (Canonical AuthorizeResponse)
 # ------------------------------------------------------------------------------

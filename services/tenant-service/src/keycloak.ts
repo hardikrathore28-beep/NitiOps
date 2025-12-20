@@ -23,6 +23,9 @@ export const initKeycloak = async () => {
 export const createTenantRealm = async (slug: string, displayName: string) => {
     const realmName = `tenant-${slug}`;
 
+    // Ensure fresh token (simple fix for token expiry in long-running service)
+    await initKeycloak();
+
     // 1. Check if Realm Exists
     let existingRealm;
     try {

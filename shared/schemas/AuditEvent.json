@@ -10,8 +10,7 @@
             "format": "uuid"
         },
         "tenant_id": {
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
         },
         "event_type": {
             "type": "string"

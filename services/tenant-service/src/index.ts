@@ -1,13 +1,14 @@
 import { createService, startService, logger, audit } from '@nitiops/service-template';
 import { Request, Response } from 'express';
-import { db, initDB } from './db';
+import { createDb, tenants, eq, sql } from '@nitiops/database';
+const db = createDb(process.env.DATABASE_URL!);
 import { initKeycloak, createTenantRealm, createUserInRealm } from './keycloak';
 
 const app = createService('tenant-service');
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
 
 // Initialize dependencies
-initDB();
+// initDB(); // Migrations handled by shared db process or external runner
 initKeycloak();
 
 const PLATFORM_TENANT_ID = '00000000-0000-0000-0000-000000000000';
@@ -44,11 +45,14 @@ app.post('/tenants', governedRoute({
 
     try {
         const result = await createTenantRealm(slug, displayName);
-        const dbResult = await db.query(
-            `INSERT INTO tenants (realm_name, slug, issuer_url, display_name) VALUES ($1, $2, $3, $4) RETURNING *`,
-            [result.realmName, slug, result.issuerUrl, displayName]
-        );
-        res.status(201).json(dbResult.rows[0]);
+        const [newTenant] = await db.insert(tenants).values({
+            realm_name: result.realmName,
+            slug: slug,
+            issuer_url: result.issuerUrl,
+            display_name: displayName
+        }).returning();
+
+        res.status(201).json(newTenant);
     } catch (e: any) {
         logger.error('Failed to create tenant', e);
         res.status(500).json({ error: e.message });
@@ -66,27 +70,30 @@ app.post('/tenants/:tenantId/users', async (req: Request, res: Response) => {
 
     try {
         // 1. Identify Realm
-        // Assuming tenantId in URL is the ID (slug or UUID). Let's query by slug or realm_name or ID.
-
         let realmName: string;
         let tenantUuid: string;
 
-        const tenantQuery = await db.query(
-            'SELECT * FROM tenants WHERE id::text = $1 OR slug = $1',
-            [tenantId]
+        // Try to query by ID first (if UUID), or fallback to slug
+        // Note: Drizzle queries are type-safe. mixing UUID and slug search is tricky if column types differ (UUID vs varchar).
+        // Postgres casting works in SQL, but Drizzle requires precise operators.
+        // We use sql operator to mimic the OR logic safely.
+
+        const tenantList = await db.select().from(tenants).where(
+            sql`${tenants.id}::text = ${tenantId} OR ${tenants.slug} = ${tenantId}`
         );
 
-        if (tenantQuery.rows.length === 0) {
+        if (tenantList.length === 0) {
             return res.status(404).json({ error: 'Tenant not found' });
         }
 
-        const tenant = tenantQuery.rows[0];
+        const tenant = tenantList[0];
         realmName = tenant.realm_name; // e.g. tenant-demo
         tenantUuid = tenant.id;
 
         // 2. AuthZ Check
         const authHeader = req.headers.authorization;
-        const policyResponse = await fetch('http://policy-service:3002/authorize', {
+        const policyUrl = process.env.POLICY_SERVICE_URL || 'http://policy-service:3002';
+        const policyResponse = await fetch(`${policyUrl}/authorize`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

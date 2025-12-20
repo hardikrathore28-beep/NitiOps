@@ -37,7 +37,7 @@ async function seed() {
             slug: 'demo',
             displayName: 'Demo Corp',
             description: 'A demo tenant for testing'
-        }, { headers: authHeaders });
+        }, { headers: { ...authHeaders, 'X-Purpose': 'Infrastructure Initialization' } });
         console.log('✅ Tenant created: tenant-demo');
     } catch (error: any) {
         if (error.response?.status === 409 || error.response?.data?.details?.includes('already exists')) {
@@ -59,7 +59,7 @@ async function seed() {
     for (const user of users) {
         try {
             console.log(`Creating user ${user.username}...`);
-            await axios.post(`${TENANT_SERVICE_URL}/tenants/demo/users`, user, { headers: authHeaders });
+            await axios.post(`${TENANT_SERVICE_URL}/tenants/demo/users`, user, { headers: { ...authHeaders, 'X-Purpose': 'User Onboarding' } });
             console.log(`✅ User created: ${user.username}`);
         } catch (error: any) {
             if (error.response?.status === 409) {

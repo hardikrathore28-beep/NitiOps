@@ -13,7 +13,8 @@ export const logger = winston.createLogger({
     ]
 });
 
-const AUDIT_URL = process.env.AUDIT_SERVICE_URL || 'http://audit-service:3001/audit/events';
+const BASE_AUDIT_URL = process.env.AUDIT_SERVICE_URL || 'http://audit-service:3001';
+const AUDIT_URL = `${BASE_AUDIT_URL}/audit/events`;
 const IS_AUDIT_SERVICE = process.env.SERVICE_NAME === 'audit-service';
 
 // Helper to send audit event

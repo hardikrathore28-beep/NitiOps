@@ -9,13 +9,13 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY shared ./shared
 
 # Copy service code
-COPY services/audit-service ./services/audit-service
+COPY services/ingestion-service ./services/ingestion-service
 
 # Install dependencies (filtered)
-RUN pnpm install --frozen-lockfile --filter audit-service...
+RUN pnpm install --frozen-lockfile --filter ingestion-service...
 
 # Build service
-RUN pnpm run build --filter audit-service
+RUN pnpm run build --filter ingestion-service
 
-WORKDIR /app/services/audit-service
+WORKDIR /app/services/ingestion-service
 CMD ["node", "dist/index.js"]
