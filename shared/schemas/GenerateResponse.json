@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "output": {
+            "type": "object"
+        },
+        "valid": {
+            "type": "boolean"
+        },
+        "attempts": {
+            "type": "integer"
+        },
+        "model_metadata": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "output",
+        "valid"
+    ]
+}

@@ -14,7 +14,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 // Mount Routes
 app.use(router);
 
-import { startWorker } from './worker';
+import { startWorker } from './worker/ingestionWorker';
 startWorker();
 
 app.listen(PORT, () => {

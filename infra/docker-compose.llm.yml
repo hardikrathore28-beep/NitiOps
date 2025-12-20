@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: nitiops-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - nitiops-net
+    # On Mac M-series, Docker Desktop usually handles GPU acceleration transparently if enabled.
+    # Otherwise it runs on CPU.
+
+volumes:
+  ollama_data:
+
+
+networks:
+  nitiops-net:
+    external: true

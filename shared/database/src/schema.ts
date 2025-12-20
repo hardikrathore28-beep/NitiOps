@@ -39,7 +39,14 @@ export const documents = pgTable('documents', {
     title: text('title').notNull(),
     language: varchar('language', { length: 10 }),
     classification: jsonb('classification').default({}),
+
+    // Versioning & Lineage
+    source_id: uuid('source_id').references(() => ingestionSources.id, { onDelete: 'set null' }),
+    ingestion_job_id: uuid('ingestion_job_id').references(() => ingestionJobs.job_id, { onDelete: 'set null' }),
+    content_hash: varchar('content_hash', { length: 64 }),
     version: integer('version').default(1),
+    source_uri: text('source_uri'),
+
     status: varchar('status', { length: 50 }).default('ingested').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
@@ -66,10 +73,19 @@ export const documentText = pgTable('document_text', {
 export const ingestionJobs = pgTable('ingestion_jobs', {
     job_id: uuid('job_id').defaultRandom().primaryKey(),
     tenant_id: text('tenant_id').notNull(),
-    type: varchar('type', { length: 50 }).notNull(),
+    source_id: uuid('source_id').references(() => ingestionSources.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 50 }).notNull(), // 'sync', 'reindex'
     status: varchar('status', { length: 50 }).default('pending').notNull(),
-    payload: jsonb('payload').notNull(),
+    payload: jsonb('payload').default({}).notNull(),
+
+    // Execution checks
+    cursor: jsonb('cursor'),
+    stats: jsonb('stats').default({}),
+    error: text('error'),
     result: jsonb('result'),
+
+    started_at: timestamp('started_at', { withTimezone: true }).defaultNow(),
+    ended_at: timestamp('ended_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
@@ -78,9 +94,10 @@ export const ingestionJobs = pgTable('ingestion_jobs', {
 export const ingestionSources = pgTable('ingestion_sources', {
     id: uuid('id').defaultRandom().primaryKey(),
     tenant_id: text('tenant_id').notNull(),
-    type: varchar('type', { length: 50 }).notNull(), // s3, gcs, api
+    type: varchar('type', { length: 50 }).notNull(), // s3, gcs, api, filesystem
     name: text('name').notNull(),
     config: jsonb('config').notNull(), // { bucket, region, accessKey... } or { url, headers }
+    schedule: varchar('schedule', { length: 100 }), // cron
     status: varchar('status', { length: 50 }).default('active').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),

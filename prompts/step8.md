@@ -13,7 +13,7 @@ This step turns ingested Documents into a **governed, searchable knowledge base*
 
   * chunks documents (doc-type aware)
   * generates embeddings
-  * stores chunks + vectors (pgvector)
+  * stores chunks + vectors (pgvector) or whatever is used
   * provides a secure search endpoint
 * Enforce policy at retrieval-time:
 

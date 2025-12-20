@@ -1,0 +1,62 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "tenant_id": {
+            "type": "string"
+        },
+        "messages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "system",
+                            "user",
+                            "assistant"
+                        ]
+                    },
+                    "content": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "role",
+                    "content"
+                ]
+            }
+        },
+        "mode": {
+            "type": "string",
+            "enum": [
+                "plain",
+                "rag"
+            ]
+        },
+        "top_k": {
+            "type": "integer"
+        },
+        "filters": {
+            "type": "object"
+        },
+        "response_format": {
+            "type": "string",
+            "enum": [
+                "text",
+                "json"
+            ]
+        },
+        "output_schema": {
+            "type": "object"
+        },
+        "conversation_id": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "messages",
+        "mode"
+    ]
+}

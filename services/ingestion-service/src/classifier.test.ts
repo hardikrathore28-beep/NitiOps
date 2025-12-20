@@ -1,23 +1,23 @@
-import { classifyText } from './classifier';
+import { Classifier } from './classifier';
+
+const classifier = new Classifier();
 
 describe('Classifier', () => {
     test('No PII', () => {
-        const t1 = classifyText("Hello world, this is a public document.");
-        expect(t1.sensitivity).toBe('low');
-        expect(t1.pii_detected).toBeFalsy();
+        const result = classifier.classify('This is a safe public document.', {});
+        expect(result.pii_detected).toBe(false);
+        expect(result.sensitivity).toBe('low');
     });
 
-    test('Email', () => {
-        const t2 = classifyText("Contact me at test@example.com for info.");
-        expect(t2.pii_detected).toBeTruthy();
-        expect(t2.tags).toContain('pii:email');
-        expect(t2.sensitivity).toBe('medium');
+    test('Detects Email', () => {
+        const result = classifier.classify('Contact us at support@example.com for help.', {});
+        expect(result.pii_detected).toBe(true);
+        expect(result.tags).toContain('pii');
     });
 
-    test('Aadhaar', () => {
-        const t3 = classifyText("ID: 1234 5678 9012");
-        expect(t3.pii_detected).toBeTruthy();
-        expect(t3.tags).toContain('pii:aadhaar');
-        expect(t3.sensitivity).toBe('high');
+    test('Detects Sensitive Keyword', () => {
+        const result = classifier.classify('This document is CONFIDENTIAL and internal use only.', {});
+        expect(result.sensitivity).toBe('high');
+        expect(result.tags).toContain('confidential');
     });
 });

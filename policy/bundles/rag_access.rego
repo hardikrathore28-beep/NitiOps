@@ -20,6 +20,16 @@ allow if {
     count(input.actor.roles) > 0
 }
 
+# Allow indexing (privileged)
+allow if {
+    input.action == "rag.index"
+    has_role("tenant_admin")
+}
+allow if {
+    input.action == "rag.index"
+    has_role("admin")
+}
+
 # Allow chunk read if clearance is sufficient
 allow if {
     input.action == "chunk.read"

@@ -1,142 +1,72 @@
-
 import { Router } from 'express';
 import { governedRoute } from '@nitiops/governed-http';
-import { handleUpload, handleProcess, handleTranscribe, handleRestIngest, handleSoapIngest } from './handlers';
+import * as handlers from './handlers/ingestionHandler';
 
 const router = Router();
 
-// 1. Upload
-router.post('/ingest/upload', governedRoute(
-    {
+// Sources
+router.post('/ingestion/sources', governedRoute({
+    action: 'ingestion.source.create',
+    resourceResolver: (req) => ({ type: 'ingestion-source', id: 'new' }),
+    privileged: true
+}, handlers.createSource));
+
+router.get('/ingestion/sources', governedRoute({
+    action: 'ingestion.source.list',
+    resourceResolver: (req) => ({ type: 'ingestion-source', id: 'list' })
+}, handlers.listSources));
+
+// Sync
+router.post('/ingestion/sync/:sourceId', governedRoute({
+    action: 'ingestion.sync',
+    resourceResolver: (req) => ({ type: 'ingestion-source', id: req.params.sourceId }),
+    privileged: true
+}, handlers.triggerSync));
+
+// Jobs
+router.get('/ingestion/jobs/:jobId', governedRoute({
+    action: 'ingestion.job.read',
+    resourceResolver: (req) => ({ type: 'ingestion-job', id: req.params.jobId })
+}, handlers.getJob));
+
+import multer from 'multer';
+const upload = multer({ dest: '/tmp/uploads/' });
+
+// ... Sources ...
+
+// Direct Ingestion
+router.post('/ingest/upload',
+    upload.single('file'),
+    governedRoute({
         action: 'document.ingest',
-        privileged: true, // Requires strict audit/policy
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'new',
-            type: 'document',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    handleUpload
-));
-
-// 2. Process
-router.post('/ingest/:document_id/process', governedRoute(
-    {
-        action: 'document.process',
+        resourceResolver: (req) => ({ type: 'document', id: 'new' }),
         privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: req.params.document_id,
-            type: 'document',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    handleProcess
-));
+        purposeRequired: true
+    }, handlers.uploadDocument)
+);
 
-// 3. Transcribe
-router.post('/ingest/transcribe', governedRoute(
-    {
-        action: 'document.ingest_transcription',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'new-transcription',
-            type: 'document',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    handleTranscribe
-));
+router.post('/ingest/:document_id/process', governedRoute({
+    action: 'document.process',
+    resourceResolver: (req) => ({ type: 'document', id: req.params.document_id }),
+    privileged: true
+}, handlers.processDocument));
 
-// 4. REST Ingest
-router.post('/ingest/api/rest', governedRoute(
-    {
-        action: 'document.ingest_api_rest',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'new-rest-ingest',
-            type: 'document',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    handleRestIngest
-));
+router.post('/ingest/api/rest', governedRoute({
+    action: 'document.ingest_api_rest',
+    resourceResolver: (req) => ({ type: 'api-source', id: req.body.base_url }),
+    privileged: true
+}, handlers.ingestRest));
 
-// 5. SOAP Ingest
-router.post('/ingest/api/soap', governedRoute(
-    {
-        action: 'document.ingest_api_soap',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'new-soap-job',
-            type: 'document',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    handleSoapIngest
-));
+router.post('/ingest/api/soap', governedRoute({
+    action: 'document.ingest_api_soap',
+    resourceResolver: (req) => ({ type: 'api-source', id: req.body.wsdl_url }),
+    privileged: true
+}, handlers.ingestSoap));
 
-// 6. Ingestion Sources
-import { createSource, updateSource, listSources, syncSource } from './handlers/sourceHandlers';
-
-router.post('/sources', governedRoute(
-    {
-        action: 'ingestion.configure',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'new-source',
-            type: 'ingestion_source',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    createSource
-));
-
-router.put('/sources/:id', governedRoute(
-    {
-        action: 'ingestion.configure',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: req.params.id,
-            type: 'ingestion_source',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    updateSource
-));
-
-router.get('/sources', governedRoute(
-    {
-        action: 'ingestion.list_sources',
-        privileged: false,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: 'list',
-            type: 'ingestion_source',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    listSources
-));
-
-router.post('/sources/:id/sync', governedRoute(
-    {
-        action: 'ingestion.sync_source',
-        privileged: true,
-        purposeRequired: true,
-        resourceResolver: (req) => ({
-            id: req.params.id,
-            type: 'ingestion_source',
-            tenant_id: (req as any).tenant_id || 'unknown'
-        })
-    },
-    syncSource
-));
+router.post('/ingest/transcribe', governedRoute({
+    action: 'document.transcribe',
+    resourceResolver: (req) => ({ type: 'media', id: 'new' }),
+    privileged: true
+}, handlers.transcribeMedia));
 
 export default router;

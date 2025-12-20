@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "message": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "assistant"
+                    ]
+                },
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "citations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "doc_id": {
+                        "type": "string"
+                    },
+                    "chunk_id": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "used_chunks": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "model": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "prompt_version": {
+            "type": "string"
+        },
+        "decision_id": {
+            "type": "string"
+        },
+        "response_hash": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "message",
+        "response_hash",
+        "model"
+    ]
+}
