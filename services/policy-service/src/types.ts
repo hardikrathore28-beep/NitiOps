@@ -2,7 +2,7 @@ export interface AuthorizeRequest {
     tenant_id: string;
     actor: {
         actor_id: string;
-        actor_type: string;
+        type: string;
         roles: string[];
         department_id: string;
         [key: string]: any;

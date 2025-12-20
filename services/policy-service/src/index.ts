@@ -20,7 +20,6 @@ app.post('/authorize', async (req: Request, res: Response) => {
     // 2. Audit: Check
     const auditActor = {
         id: input.actor.actor_id,
-        type: input.actor.actor_type,
         ...input.actor
     };
 

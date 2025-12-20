@@ -1,0 +1,27 @@
+{
+    "action": "rag.search",
+    "actor": {
+        "actor_id": "71214607-a429-4ff2-a3c4-ede61dec80c2",
+        "department_id": "unassigned",
+        "id": "71214607-a429-4ff2-a3c4-ede61dec80c2",
+        "roles": [
+            "default-roles-tenant-demo",
+            "tenant_admin",
+            "offline_access",
+            "uma_authorization"
+        ],
+        "type": "user"
+    },
+    "context": {
+        "time": "2025-12-20T17:18:05.426Z"
+    },
+    "purpose": "search-verification",
+    "resource": {
+        "context": {
+            "query_length": 13
+        },
+        "id": "global",
+        "type": "knowledge-base"
+    },
+    "tenant_id": "tenant-demo"
+}

@@ -24,6 +24,8 @@ export {
     documentBlobs,
     documentText,
     ingestionJobs,
-    ingestionSources
+    ingestionSources,
+    chunks,
+    embeddings
 } from './schema';
 export { eq, and, or, desc, asc, sql, gte, lte } from 'drizzle-orm';

@@ -1,7 +1,7 @@
 services:
   # PostageSQL
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: nitiops-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -136,6 +136,25 @@ services:
       - "3002:3002"
     depends_on:
       - opa
+    networks:
+      - nitiops-net
+
+  # RAG Service
+  rag-service:
+    build:
+      context: ../
+      dockerfile: services/rag-service/Dockerfile
+    container_name: nitiops-rag-service
+    environment:
+      - PORT=3005
+      - SERVICE_NAME=rag-service
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - POLICY_SERVICE_URL=http://policy-service:3002
+    ports:
+      - "3005:3005"
+    depends_on:
+      - postgres
+      - policy-service
     networks:
       - nitiops-net
 

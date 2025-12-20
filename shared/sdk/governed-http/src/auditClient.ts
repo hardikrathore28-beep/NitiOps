@@ -7,7 +7,7 @@ export interface AuditEventPayload {
     event_type: string;
     actor: {
         actor_id: string;
-        actor_type: string;
+        type: string;
         roles?: string[];
         department_id?: string;
     };
@@ -27,8 +27,8 @@ export class AuditClient {
                 ...event,
                 actor: {
                     ...event.actor,
-                    type: event.actor.actor_type, // Map to schema expected 'type'
-                    id: event.actor.actor_id      // Map to schema expected 'id'
+                    id: event.actor.actor_id,      // Override with schema expected 'id'
+                    type: event.actor.type         // Ensure type is present
                 },
                 timestamp: event.timestamp || new Date().toISOString()
             };

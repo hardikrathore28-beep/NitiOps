@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 export interface Actor {
     actor_id: string;
-    actor_type: 'user' | 'service' | 'agent';
+    type: 'user' | 'service' | 'agent';
     roles: string[];
     department_id?: string;
 }

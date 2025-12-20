@@ -85,3 +85,43 @@ export const ingestionSources = pgTable('ingestion_sources', {
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
+
+// RAG: Chunks
+// Note: We need a custom type for 'vector' if we want Drizzle to handle it natively, 
+// or we treat it as unknown/custom. Drizzle has minimal vector support in pg-core but it's often better to map it manually or usage `customType`.
+// For now, we won't define the 'embedding' column using standard helpers because 'vector' isn't in core pg types in recent drizzle ORM versions fully without extensions helpers.
+// However, newer drizzle versions support it. Let's assume standard columns for now and handle vector inserts via raw SQL or extended types if available.
+// Actually, let's use `customType` for vector to be safe.
+
+import { customType } from 'drizzle-orm/pg-core';
+
+export const vector = customType<{ data: number[]; driverData: string }>({
+    dataType() {
+        return 'vector(1536)';
+    },
+    toDriver(value: number[]): string {
+        return JSON.stringify(value);
+    },
+    fromDriver(value: string): number[] {
+        return JSON.parse(value);
+    }
+});
+
+export const chunks = pgTable('chunks', {
+    chunk_id: uuid('chunk_id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id').notNull(),
+    document_id: uuid('document_id').notNull().references(() => documents.document_id, { onDelete: 'cascade' }),
+    chunk_index: integer('chunk_index').notNull(),
+    text: text('text').notNull(),
+    token_count: integer('token_count'),
+    provenance: jsonb('provenance').default({}).notNull(),
+    labels: jsonb('labels').default({}).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const embeddings = pgTable('embeddings', {
+    chunk_id: uuid('chunk_id').primaryKey().references(() => chunks.chunk_id, { onDelete: 'cascade' }),
+    embedding: vector('embedding').notNull(),
+    model_name: varchar('model_name', { length: 100 }).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});

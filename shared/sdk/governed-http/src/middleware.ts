@@ -76,7 +76,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         // Build Actor
         govReq.actor = {
             actor_id: verified.sub,
-            actor_type: 'user',
+            type: 'user',
             roles: verified.realm_access?.roles || [],
             department_id: verified.department_id || (realmName === 'platform' ? 'platform' : 'unassigned')
         };
